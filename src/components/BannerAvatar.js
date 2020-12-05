@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text,Image , StyleSheet } from 'react-native';
 import {API_HOST} from '../utils/constants';
 import NotFound from '../assets/no-image.jpg';
+import Batman from '../assets/batman.png'
 import {COLORS} from '../colors/colors';
 
 export default function BannerAvatar(props) {
@@ -10,8 +11,8 @@ export default function BannerAvatar(props) {
     const avatarUrl ={uri: `${API_HOST}/mostrarAvatr?id=${user?.id}`};
   return (
     <View>
-        <Image style={styles.banner} source={user?.banner ? bannerUrl : NotFound}/>
-        <Image style={styles.avatar} source={user?.avatar ? avatarUrl : NotFound}/>
+        <Image style={styles.banner} source={NotFound}/>
+        <Image style={styles.avatar} source={Batman}/>
      </View>
   );
 }

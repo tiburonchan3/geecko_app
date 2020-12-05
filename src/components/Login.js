@@ -5,33 +5,43 @@ import {
   StyleSheet,
   TextInput,
   TouchableHighlight,
+  Alert,
+  Keyboard,
 } from "react-native";
 import { COLORS } from "../colors/colors";
 import { Formik } from "formik";
 import * as Auth from "../api/auth";
 import { isEmailValid } from "../utils/validation";
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export default function Login({setRefreshLogin}) {
+export default function Login({ setRefreshLogin, setShow }) {
   const handleSubmit = (values) => {
+    Keyboard.dismiss();
     if (values.email !== "" && values.password !== "") {
+      values.email = values.email.replace(/ /g, "");
       if (isEmailValid(values.email)) {
-        Auth.loginApi(values).then(async(r) => {
+        Auth.loginApi(values).then(async (r) => {
           try {
-              await AsyncStorage.setItem('@token',r.token)
-              setRefreshLogin(true)
-              console.log(r.token)
+            await AsyncStorage.setItem("@token", r.token);
+            await setRefreshLogin(true);
+            setShow(true);
+            setTimeout(function() {
+              setShow(false);
+            }, 4000);
           } catch (error) {
-              console.log(error)
+            setShow(false);
+            setRefreshLogin(false);
+            Alert.alert("Error", "Los datos son incorrectos");
           }
         });
       } else {
-        console.log("email invalido");
+        Alert.alert("Advertencia", "El email es invalido");
       }
     } else {
-      console.log("datos vacios");
+      Alert.alert("Advertencia", "No puedes dejar campos vacios");
     }
   };
+
   return (
     <View style={styles.body}>
       <Formik
@@ -105,7 +115,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     marginTop: 10,
-    textAlign: 'center',
+    textAlign: "center",
     color: COLORS.white,
     fontSize: 20,
   },

@@ -5,5 +5,7 @@ export const COLORS = {
     primary: '#3b9c9c',
     grey: '#d8d8d8',
     medium_grey: '#848484',
-    blue:'#99ccff'
+    blue:'#99ccff',
+    pink: '#FF0066',
+    ligth_blue: '#CCCCFF',
 }

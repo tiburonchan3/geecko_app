@@ -1,3 +1,4 @@
+import { Formik } from "formik";
 import React, { useState } from "react";
 import {
   View,
@@ -6,40 +7,73 @@ import {
   TouchableHighlight,
   StyleSheet,
   Alert,
-  Keyboard,
+  ActivityIndicator,
 } from "react-native";
-import { Formik } from "formik";
 import { COLORS } from "../colors/colors";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import Icon from "react-native-vector-icons/FontAwesome5";
 import moment from "moment";
-import { EditUserApi } from "../api/user";
+import { isEmailValid } from "../utils/validation";
+import { registerApi } from "../api/auth";
 
-export default function EditForm(props) {
-  const { user, navigation, setRefreshInfo, setShowModal } = props;
-  const [date, setDate] = useState(new Date(Date.parse(user?.fechaN)));
+export default function RegisterForm(props) {
+  const { setShowModal } = props;
+  const [date, setDate] = useState(new Date(1598051730000));
   const [mode, setMode] = useState("date");
   const [show, setShow] = useState(false);
+  const [signUploading, setSignUploading] = useState(false);
   const handleSubmit = (values) => {
-    values.fechaN = date;
-    EditUserApi(values)
-      .then((response) => {
-        Keyboard.dismiss();
-        Alert.alert("Exito", "Se guardaron los cambios", [
-          {
-            text: "Aceptar",
-            onPress: () => {
-              navigation.navigate("Home");
-            },
-          },
-        ]);
-        setShowModal(false);
-        setRefreshInfo(true);
-      })
-      .catch((err) => {
-        console.log("error en el codigo xdxd");
-      });
+    if (
+      (values.nombre != "" &&
+        values.apellidos != "" &&
+        values.fechaN != "" &&
+        values.password != "",
+      values.repeat_password != "")
+    ) {
+      if (isEmailValid(values.email)) {
+        if (values.password.length === 6) {
+          if (values.password === values.repeat_password) {
+            setSignUploading(true);
+            values.fechaN = date;
+            registerApi(values)
+              .then((response) => {
+                if (response.code === 400) {
+                  Alert.alert("Advertencia", response.message);
+                } else {
+                  Clean(values);
+                  Alert.alert("Exito", "Se ah registrado el usuario");
+                  setShowModal(false);
+                }
+              })
+              .catch(() => {
+                console.log("Error en el servidor");
+                setSignUploading(false);
+              })
+              .finally(() => {
+                setSignUploading(false);
+              });
+          } else {
+            Alert.alert("Advertencia", "Las contraseñas no coinciden");
+          }
+        } else {
+          Alert.alert("Advertencia", "La contraseña debe tener 6 caracteres");
+        }
+      } else {
+        Alert.alert("Advertencia", "El email es incorrecto");
+      }
+    } else {
+      Alert.alert("Advertencia", "No puedes dejar campos vacios");
+    }
   };
+
+  const Clean = (values) => {
+    values.nombre = "";
+    values.email = "";
+    values.apellidos = "";
+    values.password = "";
+    values.repeat_password = "";
+  };
+
   const onChange = (event, selectedDate) => {
     const currentDate = selectedDate || date;
     setShow(false);
@@ -53,8 +87,9 @@ export default function EditForm(props) {
   const showDatepicker = () => {
     showMode("date");
   };
+
   return (
-    <Formik initialValues={initial(user, date)} onSubmit={handleSubmit}>
+    <Formik initialValues={initialValues(date)} onSubmit={handleSubmit}>
       {({ handleChange, handleBlur, handleSubmit, values }) => (
         <View style={styles.formContent}>
           <TextInput
@@ -64,7 +99,7 @@ export default function EditForm(props) {
             style={styles.inputs}
             placeholder="Escribe tu nombre"
             placeholderTextColor={COLORS.white}
-            textContentType="emailAddress"
+            textContentType="nickname"
           />
           <TextInput
             onChangeText={handleChange("apellidos")}
@@ -73,27 +108,16 @@ export default function EditForm(props) {
             style={styles.inputs}
             placeholder="Escribe tus apellidos"
             placeholderTextColor={COLORS.white}
-            textContentType="emailAddress"
+            textContentType="nickname"
           />
           <TextInput
-            onChangeText={handleChange("ubicacion")}
-            onBlur={handleBlur("ubicacion")}
-            value={values.ubicacion}
+            onChangeText={handleChange("email")}
+            onBlur={handleBlur("email")}
+            value={values.email}
             style={styles.inputs}
-            placeholder="Escribe tu ubicacion"
+            placeholder="Escribe tu email"
             placeholderTextColor={COLORS.white}
             textContentType="emailAddress"
-          />
-          <TextInput
-            onChangeText={handleChange("biografia")}
-            onBlur={handleBlur("biografia")}
-            value={values.biografia}
-            style={styles.inputs}
-            placeholder="Escribe tu biografia"
-            placeholderTextColor={COLORS.white}
-            textContentType="emailAddress"
-            multiline={true}
-            numberOfLines={4}
           />
           <View style={styles.dates}>
             <Icon
@@ -114,13 +138,24 @@ export default function EditForm(props) {
           </View>
 
           <TextInput
-            onChangeText={handleChange("sitioweb")}
-            onBlur={handleBlur("sitioweb")}
-            value={values.sitioweb}
+            onChangeText={handleChange("password")}
+            onBlur={handleBlur("password")}
+            value={values.password}
             style={styles.inputs}
-            placeholder="Escribe tu sitioweb"
+            placeholder="Escribe tu contraseña"
             placeholderTextColor={COLORS.white}
-            textContentType="emailAddress"
+            textContentType="password"
+            secureTextEntry={true}
+          />
+          <TextInput
+            onChangeText={handleChange("repeat_password")}
+            onBlur={handleBlur("repeat_password")}
+            value={values.repeat_password}
+            style={styles.inputs}
+            placeholder="Repite tu contraseña"
+            placeholderTextColor={COLORS.white}
+            textContentType="password"
+            secureTextEntry={true}
           />
           <View style={{ flex: 5 }}>
             {show && (
@@ -138,7 +173,11 @@ export default function EditForm(props) {
             onPress={handleSubmit}
             style={styles.submitButton}
           >
-            <Text style={styles.buttonText}>Guardar</Text>
+            {!signUploading ? (
+              <Text style={styles.buttonText}>Guardar</Text>
+            ) : (
+              <ActivityIndicator size="large" color="#ffffff" />
+            )}
           </TouchableHighlight>
         </View>
       )}
@@ -184,13 +223,13 @@ const styles = StyleSheet.create({
   },
 });
 
-const initial = (user) => {
+const initialValues = () => {
   return {
-    nombre: user?.nombre || "",
-    apellidos: user?.apellidos || "",
-    sitioweb: user?.SitioWeb || "",
-    ubicacion: user?.ubicacion || "",
-    fechaN: user?.fechaN || "",
-    biografia: user?.biografia || "",
+    nombre: "",
+    email: "",
+    apellidos: "",
+    fechaN: "",
+    password: "",
+    repeat_password: "",
   };
 };

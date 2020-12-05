@@ -28,7 +28,7 @@ export default function componentName({props,setRefreshLogin}) {
         </View>
         <View style={styles.drawerItem}>
           <Icon style={styles.drawerItemIcon} size={20} color={COLORS.white} name="user-friends" />
-          <Text style={styles.drawerItemText}>Amigos</Text>
+          <Text onPress={()=>navigation.navigate("Friends")} style={styles.drawerItemText}>Amigos</Text>
         </View>
         <View style={styles.drawerItem}>
           <Icon style={styles.drawerItemIcon} size={20} color={COLORS.white} name="user-alt" />

@@ -1,8 +1,3 @@
-export const API_HOST = "https://redsocialherok.herokuapp.com"
-//URL HEROKU
-//https://redsocialherok.herokuapp.com/
-//URL LOCAL
-//http://localhost:8080
-//
+export const API_HOST = "https://redsocialherok.herokuapp.com";
 
-export const TOKEN = "token"
+export const TOKEN = "token";
