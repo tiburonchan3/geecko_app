@@ -44,3 +44,20 @@ export async function AddPublicationApi(data,foto){
         return err
     })
 }
+export async function GetAllPublicationApi(page = 1){
+    const url = `${API_HOST}/allPublicaciones?page=${page}`
+    const token = await getToken()
+    const params = {
+        headers:{
+            "Content-Type":"application/json",
+            Authorization: `Bearer ${token}`
+        }
+    }
+    return fetch(url,params)
+    .then((response)=>{
+        return response.json()
+    })
+    .catch((err)=>{
+        return err
+    })
+}

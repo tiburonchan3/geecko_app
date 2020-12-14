@@ -1,28 +1,24 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, Image, StyleSheet, ScrollView, __spread } from "react-native";
-import { getPublicationsApi } from "../api/publication";
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  ScrollView,
+  __spread,
+} from "react-native";
 import { getComments } from "../api/comment";
 import { map } from "lodash";
 import { API_HOST } from "../utils/constants";
 import { COLORS } from "../colors/colors";
-import NotFound from "../assets/no-image.jpg";
 import moment from "moment";
-import Batman from "../assets/batman.png";
 import Icon from "react-native-vector-icons/FontAwesome5";
-import { addReaction, readReaction } from "../api/reactions";
+import { addReaction, deleteReaction, readReaction } from "../api/reactions";
+import useAuth from "../hooks/useAuth";
+import { getUserApi } from "../api/user";
 
 export default function PublicationList(props) {
-  const { user, navigation } = props;
-  const [publications, setPublications] = useState(null);
-  const [page, setPage] = useState(1);
-  useEffect(() => {
-    const getPublications = async () => {
-      await getPublicationsApi(user?.id, page).then((response) => {
-        setPublications(response);
-      });
-    };
-    getPublications();
-  }, [user]);
+  const { user, navigation, publications } = props;
   return (
     <View>
       {map(publications, (publication, index) => (
@@ -40,46 +36,75 @@ function PublicationItem(props) {
   const { publication, user, navigation } = props;
   const [comments, setcomments] = useState(null);
   const [reactions, setReactions] = useState([]);
-  const id = publication.userid;
-  const avatarUrl = { uri: `${API_HOST}/mostrarAvatr?id=${id}` };
+  const [refreshReactions, setRefreshReactions] = useState(false);
+  const [userReact, setUserReact] = useState([]);
   const [fotoPub, setFotoPub] = useState(null);
+  const [userPub, setUserPub] = useState([]);
+  let avatarUrl = {};
+  const userLog = useAuth();
+  const getPublicationComments = async () => {
+    await getComments(publication.id)
+      .then((response) => {
+        setcomments(response);
+      })
+      .catch(() => {
+        console.log("error en el codigo");
+      });
+  };
+  const getReaction = async () => {
+    await readReaction(publication.id)
+      .then((response) => {
+        setReactions(response);
+      })
+      .catch(() => {
+        console.log("errro");
+      });
+  };
+  const getUserInfo = async () => {
+    await getUserApi(publication.userid)
+      .then((response) => {
+        setUserPub(response);
+      })
+      .catch(() => {
+        console.log("Error en el codigo");
+      });
+  };
   useEffect(() => {
-    const getPublicationComments = async () => {
-      await getComments(publication.id)
-        .then((response) => {
-          setcomments(response);
-        })
-        .catch((err) => {
-          console.log("error en el codigo");
-        });
-    };
     getPublicationComments();
     setFotoPub({ uri: `${API_HOST}/mostrarFotoPub?id=${publication.id}` });
-    const getReaction = async () => {
-      await readReaction(publication.id)
-        .then((response) => {
-          setReactions(response);
-        })
-        .catch(() => {
-          console.log("errro");
-        });
-    };
     getReaction();
-  }, [publication]);
-  const addReaction = async ()=>{
-    let id = publication.id
-    await addReaction(id).then(() => {
-        console.log("exito")
+    getUserInfo();
+  }, [publication, refreshReactions]);
+  const Reaction = async () => {
+    let id = publication.id;
+    await addReaction(id)
+      .then(() => {
+        setRefreshReactions(true);
       })
       .catch("error en el codigo");
-  }
+  };
+  const DelReaction = async () => {
+    let id = publication.id;
+    await deleteReaction(id)
+      .then(() => {
+        setRefreshReactions(true);
+      })
+      .catch("error en el codigo");
+  };
+
+  useEffect(() => {
+    if (reactions) {
+      setUserReact(reactions.filter((react) => react.userid === userLog._id));
+    }
+  }, [reactions]);
+  avatarUrl = { uri: `${API_HOST}/mostrarAvatr?id=${userPub?.id}` };
   return (
-    <ScrollView>
+    <ScrollView style={{ marginTop: 20 }}>
       <View style={styles.userPublication}>
-        <Image style={styles.avatar} source={Batman} />
+        <Image style={styles.avatar} source={avatarUrl} />
         <View>
           <Text style={styles.name}>
-            {user?.nombre} {user?.apellidos}
+            {userPub?.nombre} {userPub?.apellidos}
           </Text>
           <Text style={styles.date}>
             {moment(publication.fechaPublicacion).calendar()}
@@ -92,11 +117,33 @@ function PublicationItem(props) {
       </View>
       <Text style={styles.tecnologias}>#{publication.tecnologias}</Text>
       <View style={styles.moreInfo}>
-        <View style={styles.reactions}>
-          <Icon onPress={addReaction} name="heart" size={30} color={COLORS.white} />
-          <Text style={styles.countReactions}>
-            {reactions ? reactions.length : null}
-          </Text>
+        <View>
+          {userReact.length > 0 ? (
+            <View style={styles.reactions}>
+              <Icon
+                onPress={DelReaction}
+                solid
+                name="heart"
+                size={30}
+                color={COLORS.pink}
+              />
+              <Text style={styles.countReactions}>
+                {reactions ? reactions.length : null}
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.reactions}>
+              <Icon
+                onPress={Reaction}
+                name="heart"
+                size={30}
+                color={COLORS.white}
+              />
+              <Text style={styles.countReactions}>
+                {reactions ? reactions.length : null}
+              </Text>
+            </View>
+          )}
         </View>
         <View style={styles.comments}>
           <Icon

@@ -1,40 +1,51 @@
-import React,{useState,useEffect} from "react";
-import { View, Text, Image, StyleSheet,TouchableHighlight } from "react-native";
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  TouchableHighlight,
+} from "react-native";
 import { API_HOST } from "../utils/constants";
 import Batman from "../assets/batman.png";
 import { COLORS } from "../colors/colors";
-import {getUserApi} from '../api/user'
+import { getUserApi } from "../api/user";
 
 export default function FriendItem(props) {
-  const { friend,navigation } = props;
-  const [userInfo, setUserInfo] = useState(null)
+  const { friend, navigation } = props;
+  const [userInfo, setUserInfo] = useState(null);
+  const getUser = async () => {
+    await getUserApi(friend.id)
+      .then((response) => {
+        setUserInfo(response);
+      })
+      .catch(() => {
+        console.log("Error en el codigo");
+      });
+  };
   useEffect(() => {
-      const getUser = async ()=>{
-          await getUserApi(friend.id).then(response=>{
-              setUserInfo(response)
-          }).catch(()=>{
-              console.log("Error en el codigo")
-          })
-      }
-      getUser()
-  }, [friend])
-  console.log(user(userInfo))
+    getUser();
+  }, [friend]);
+  console.log(user(userInfo));
   const avatarUrl = { uri: `${API_HOST}/mostrarAvatr?id=${friend.id}` };
   return (
     <View>
-        <TouchableHighlight onPress={()=>navigation.navigate("Account",{user: user(userInfo)})}>
+      <TouchableHighlight
+        onPress={() => navigation.navigate("Account", { user: user(userInfo) })}
+      >
         <View style={styles.friends}>
-        <Image
-          style={styles.image}
-          source={friend.avatar ? avatarUrl : Batman}
-        ></Image>
-        <View>
-            <Text style={styles.name}>{friend.nombre} {friend.apellidos}</Text>
+          <Image
+            style={styles.image}
+            source={friend.avatar ? avatarUrl : Batman}
+          ></Image>
+          <View>
+            <Text style={styles.name}>
+              {friend.nombre} {friend.apellidos}
+            </Text>
             <Text style={styles.bio}>{userInfo?.biografia}</Text>
+          </View>
         </View>
-      </View>
-        </TouchableHighlight>
-
+      </TouchableHighlight>
     </View>
   );
 }
@@ -52,18 +63,18 @@ const styles = StyleSheet.create({
     borderRadius: 50,
   },
   name: {
-      color: COLORS.white,
-      marginTop: 15,
-      marginLeft: 10
+    color: COLORS.white,
+    marginTop: 15,
+    marginLeft: 10,
   },
-  bio:{
-      color:COLORS.grey,
-      marginLeft: 10,
-      fontSize: 10
-  }
+  bio: {
+    color: COLORS.grey,
+    marginLeft: 10,
+    fontSize: 10,
+  },
 });
-function user(userInfo){
-    return{
-        _id:userInfo?.id
-    }
+function user(userInfo) {
+  return {
+    _id: userInfo?.id,
+  };
 }

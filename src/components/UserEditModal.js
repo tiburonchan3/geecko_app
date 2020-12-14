@@ -3,10 +3,10 @@ import { View, Text, StyleSheet } from "react-native";
 import Modal from "react-native-modal";
 import { COLORS } from "../colors/colors";
 import Icon from "react-native-vector-icons/FontAwesome5";
-import EditForm from './EditForm';
+import EditForm from "./EditForm";
 
 export default function UserEditModal(props) {
-  const {navigation, showModal, setShowModal,user,setRefreshInfo } = props;
+  const { navigation, showModal, setShowModal, user, setRefreshInfo } = props;
   return (
     <View>
       <Modal isVisible={showModal}>
@@ -23,7 +23,12 @@ export default function UserEditModal(props) {
           </View>
           <View style={styles.hr} />
           <View>
-          <EditForm navigation={navigation} setRefreshInfo={setRefreshInfo} setShowModal={setShowModal} user={user}/>
+            <EditForm
+              navigation={navigation}
+              setRefreshInfo={setRefreshInfo}
+              setShowModal={setShowModal}
+              user={user}
+            />
           </View>
         </View>
       </Modal>

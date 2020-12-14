@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, Image, StyleSheet,ScrollView } from "react-native";
+import { View, Text, Image, StyleSheet, ScrollView } from "react-native";
 import { API_HOST } from "../utils/constants";
 import { COLORS } from "../colors/colors";
 import moment from "moment";
@@ -8,45 +8,72 @@ import CommentForm from "../components/CommentForm";
 import CommentItem from "../components/CommentItem";
 import { map } from "lodash";
 import { getComments } from "../api/comment";
-import Batman from '../assets/batman.png'
-import { readReaction } from "../api/reactions";
+import Batman from "../assets/batman.png";
+import { addReaction, readReaction } from "../api/reactions";
+import useAuth from "../hooks/useAuth";
+import { getUserApi } from "../api/user";
 
 export default function Comment(props) {
   const { route } = props;
   const { params } = route;
   const { user, publication } = params;
   const [comments, setComments] = useState([]);
-  const [fotoPub, setFotoPub] = useState(null)
-  const [refreshComments, setRefreshComments] = useState(false)
-  const avatarUrl = { uri: `${API_HOST}/mostrarAvatr?id=${user.id}` };
+  const [fotoPub, setFotoPub] = useState(null);
+  const [reactions, setReactions] = useState([]);
+  const [userInfo, setUserInfo] = useState([])
+  const [userReact, setUserReact] = useState([]);
+  const [refreshComments, setRefreshComments] = useState(false);
+  const userLog = useAuth();
+  const getUser = async()=>{
+      getUserApi(publication.userid).then(response=>{
+          setUserInfo(response)
+      })
+  }
+  const getAllComments = async () => {
+    await getComments(publication?.id)
+      .then((response) => {
+        setComments(response || []);
+      })
+      .catch(() => {
+        console.log("error en el codigo");
+      });
+  };
+  const getReactions = async () => {
+    await readReaction(publication?.id)
+      .then((response) => {
+        setReactions(response)
+      })
+      .then(() => {
+        console.log("error");
+      });
+  };
   useEffect(() => {
-    const getAllComments = async () => {
-      await getComments(publication?.id)
-        .then((response) => {
-          setComments(response || []);
-        })
-        .catch(() => {
-          console.log("error en el codigo");
-        });
-    };
+      getUser()
     getAllComments();
-    const getReactions = async()=>{
-        await readReaction(publication?.id).then((response)=>{
-            console.log(response || [])
-        }).then(()=>{
-            console.log("error")
-        })
-    }
     getReactions();
-    setFotoPub({uri : `${API_HOST}/mostrarFotoPub?id=${publication?.id}`})
-  }, [props,refreshComments]);
+    setFotoPub({ uri: `${API_HOST}/mostrarFotoPub?id=${publication?.id}` });
+  }, [props, refreshComments]);
+  useEffect(() => {
+    if (reactions) {
+      setUserReact(reactions.filter((react) => react.userid === userLog._id));
+    }
+  }, [reactions]);
+  const Reaction = async () => {
+    let id = publication?.id;
+    await addReaction(id)
+      .then(() => {
+        setRefreshReactions(true);
+      })
+      .catch("error en el codigo");
+  };
+  const avatarUrl = { uri: `${API_HOST}/mostrarAvatr?id=${userInfo.id}` };
   return (
     <ScrollView style={styles.body}>
       <View style={styles.userPublication}>
-        <Image style={styles.avatar} source={Batman} />
+        <Image style={styles.avatar} source={avatarUrl} />
         <View>
           <Text style={styles.name}>
-            {user.nombre} {user.apellidos}
+            {userInfo.nombre} {userInfo.apellidos}
           </Text>
           <Text style={styles.date}>
             {moment(publication?.fechaPublicacion).calendar()}
@@ -54,28 +81,50 @@ export default function Comment(props) {
         </View>
       </View>
       <Text style={styles.publication}>{publication?.publicacion}</Text>
-      <View style={{width:'100%',height:250}}>
-        {
-            publication.foto &&(
-                <Image style={styles.fotoPub} source={fotoPub}/>
-            )
-        }
-        </View>
+      <View style={{ width: "100%", height: 250 }}>
+        {publication.foto && <Image style={styles.fotoPub} source={fotoPub} />}
+      </View>
       <Text style={styles.tecnologias}>#{publication?.tecnologias}</Text>
       <View style={styles.moreInfo}>
         <View style={styles.reactions}>
-          <Icon name="heart" size={30} color={COLORS.white} />
-          <Text style={styles.countReactions}>250</Text>
+        {userReact.length > 0 ? (
+            <View style={styles.reactions}>
+              <Icon
+                solid
+                name="heart"
+                size={30}
+                color={COLORS.pink}
+              />
+              <Text style={styles.countReactions}>
+                {reactions ? reactions.length : null}
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.reactions}>
+              <Icon
+                onPress={Reaction}
+                name="heart"
+                size={30}
+                color={COLORS.white}
+              />
+              <Text style={styles.countReactions}>
+                {reactions ? reactions.length : null}
+              </Text>
+            </View>
+          )}
         </View>
         <View style={styles.comments}>
           <Icon name="comment-alt" size={30} color={COLORS.white} solid />
           <Text style={styles.countReactions}>
-            {comments ? comments.length : 0}
+            {comments.length > 0 ? comments.length : ""}
           </Text>
         </View>
       </View>
       <View style={styles.hr} />
-      <CommentForm id={publication.id} setRefreshComments={setRefreshComments}/>
+      <CommentForm
+        id={publication.id}
+        setRefreshComments={setRefreshComments}
+      />
       {map(comments, (comment, index) => (
         <CommentItem comment={comment} key={index} />
       ))}
@@ -158,10 +207,9 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: COLORS.grey,
   },
-  fotoPub:{
+  fotoPub: {
     flex: 1,
     width: null,
-    resizeMode: "stretch"
-
-  }
+    resizeMode: "stretch",
+  },
 });

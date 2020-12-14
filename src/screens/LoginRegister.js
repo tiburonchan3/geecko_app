@@ -5,7 +5,7 @@ import {
   StyleSheet,
   Image,
   TouchableHighlight,
-  Keyboard
+  Keyboard,
 } from "react-native";
 import Login from "../components/Login";
 import { COLORS } from "../colors/colors";
@@ -46,7 +46,7 @@ export default function LoginRegister(props) {
         </TouchableHighlight>
       )}
       <Register setShowModal={setShowModal} showModal={showModal} />
-      {show && <Splash/>}
+      {show && <Splash />}
     </View>
   );
 }
@@ -77,4 +77,3 @@ const styles = StyleSheet.create({
     width: 300,
   },
 });
-

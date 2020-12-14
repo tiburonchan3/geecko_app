@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, Text, StyleSheet,ActivityIndicator } from 'react-native';
-import { COLORS } from '../colors/colors';
+import React from "react";
+import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
+import { COLORS } from "../colors/colors";
 
 export default function Splash() {
   return (
@@ -13,15 +13,15 @@ export default function Splash() {
   );
 }
 const styles = StyleSheet.create({
-    splash: {
-        width: "100%",
-        height: "100%",
-        backgroundColor: COLORS.white,
-        position: "absolute",
-      },
-      loader: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-      },
-})
+  splash: {
+    width: "100%",
+    height: "100%",
+    backgroundColor: COLORS.white,
+    position: "absolute",
+  },
+  loader: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+});

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import 'react-native-gesture-handler';
-import { StyleSheet, StatusBar } from "react-native";
+import { StyleSheet, StatusBar,LogBox } from "react-native";
 import LoginRegister from "./src/screens/LoginRegister";
 import Navigation from './src/routes/Navigation';
 import * as Auth from './src/api/auth';
@@ -8,19 +8,18 @@ import {COLORS} from './src/colors/colors';
 import {authContext} from './src/utils/context';
 
 export default function App() {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(undefined);
   const [refreshLogin, setRefreshLogin] = useState(false);
   const [loadUser, setLoadUser] = useState(false)
+  const setUserLog = async () =>{
+    setUser(await Auth.isUserLoggedApi());
+  }
   useEffect(() => {
-      const setUserLog = async () =>{
-        setUser(await Auth.isUserLoggedApi());
-      }
     setUserLog()
     setLoadUser(true)
     setRefreshLogin(false)
-    console.log(user)
   }, [refreshLogin])
-
+  LogBox.ignoreAllLogs();
   if(!loadUser) return null
   return (
     <authContext.Provider value={user}>

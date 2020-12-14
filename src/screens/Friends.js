@@ -12,22 +12,22 @@ import { getFollowFriends } from "../api/friends";
 import { map } from "lodash";
 import FriendItem from "../components/FriendItem";
 
-export default function Friends({navigation}) {
-    console.log(navigation)
+export default function Friends({ navigation }) {
+  console.log(navigation);
   const [type, setType] = useState("follow");
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [friends, setFriends] = useState([]);
+  const getFriends = async () => {
+    await getFollowFriends(page, type, search)
+      .then((response) => {
+        setFriends(response || []);
+      })
+      .catch(() => {
+        console.log("error de codigo");
+      });
+  };
   useEffect(() => {
-    const getFriends = async () => {
-      await getFollowFriends(page, type, search)
-        .then((response) => {
-          setFriends(response || []);
-        })
-        .catch(() => {
-          console.log("error de codigo");
-        });
-    };
     getFriends();
   }, [type, search]);
   return (

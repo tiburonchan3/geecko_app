@@ -3,10 +3,10 @@ import { View, Text, StyleSheet } from "react-native";
 import Modal from "react-native-modal";
 import { COLORS } from "../colors/colors";
 import Icon from "react-native-vector-icons/FontAwesome5";
-import PublicationForm from './PublicationForm';
+import PublicationForm from "./PublicationForm";
 
 export default function PublicationModal(props) {
-  const {showModalP, setShowModalP} = props;
+  const { showModalP, setShowModalP, setRefreshPublications } = props;
   return (
     <View>
       <Modal isVisible={showModalP}>
@@ -22,7 +22,10 @@ export default function PublicationModal(props) {
             />
           </View>
           <View style={styles.hr} />
-            <PublicationForm/>
+          <PublicationForm
+            setRefreshPublications={setRefreshPublications}
+            setShowModalP={setShowModalP}
+          />
         </View>
       </Modal>
     </View>
@@ -32,7 +35,7 @@ const styles = StyleSheet.create({
   modal: {
     borderRadius: 10,
     padding: 20,
-    height:350,
+    height: 400,
     backgroundColor: COLORS.blue_dark_two,
   },
   hr: {
